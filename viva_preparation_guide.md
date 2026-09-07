@@ -22,19 +22,28 @@
 
 #### Direct Executive Answer:
 Pipelined enhancement-then-detection suffers from an inherent **objective misalignment**: low-light enhancers optimize for human perceptual quality (PSNR, SSIM, visual brightness), whereas object detectors rely on gradient discriminability and semantic feature boundaries. Brightening low-light images non-linearly amplifies high-frequency sensor noise, introduces color casts, and incurs an unacceptable latency penalty ($15\text{--}80\text{ ms}$) unfeasible for real-time edge robotics.
-
 #### Detailed Technical Defense:
-1. **Mathematical Objective Misalignment:**
-   An enhancer $G_{\theta}$ is trained with perceptual losses:
-   $$\mathcal{L}_{\text{enhance}} = \alpha \mathcal{L}_{\text{recon}}(I_{\text{enh}}, I_{\text{gt}}) + \beta \mathcal{L}_{\text{perceptual}} + \gamma \mathcal{L}_{\text{TV}}$$
-   In contrast, a detector $D_{\phi}$ optimizes classification and box localization:
-   $$\mathcal{L}_{\text{det}} = \lambda_1 \mathcal{L}_{\text{cls}} + \lambda_2 \mathcal{L}_{\text{box}} + \lambda_3 \mathcal{L}_{\text{DFL}}$$
-   Optimizing $G_{\theta}$ without task gradients from $\mathcal{L}_{\text{det}}$ causes the enhancer to treat Poisson-Gaussian sensor noise in dark regions as high-frequency edge detail, amplifying it into false-positive features.
-2. **Specific Failure Modes of Pipelined Systems:**
-   - **Noise Over-amplification:** In photon-starved regions (e.g., ExDark *Low* and *Shadow*), pixel intensities hover around low quantization levels with low Signal-to-Noise Ratio (SNR). Quadratic curve expansion (Zero-DCE) or reflectance boosting (RetinexNet) scales noise variances exponentially, drowning faint object boundaries.
-   - **Chromatic Aberrations and Color Distortion:** Neural enhancers frequently hallucinate unnatural color distributions when balancing color channels, confusing the detector's learned color-semantic priors.
-   - **Halo and Boundary Artifacts:** Illumination map estimation at sharp transitions creates ringing artifacts, causing bounding box jitter or boundary regression collapse.
-   - **Inference Latency Bottleneck:** A lightweight detector like YOLOv8 operates at $3\text{--}6\text{ ms}$ on edge GPU. Adding Zero-DCE adds $+4\text{ ms}$, while RetinexNet or EnlightenGAN adds $+35\text{--}80\text{ ms}$, dropping frame rates from $>100\text{ FPS}$ to below $25\text{ FPS}$.
+
+##### Point 1: Mathematical Objective Misalignment
+An enhancer $G_{\theta}$ is trained with perceptual losses:
+
+$$
+\mathcal{L}_{\text{enhance}} = \alpha \mathcal{L}_{\text{recon}}(I_{\text{enh}}, I_{\text{gt}}) + \beta \mathcal{L}_{\text{perceptual}} + \gamma \mathcal{L}_{\text{TV}}
+$$
+
+In contrast, a detector $D_{\phi}$ optimizes classification and bounding box localization:
+
+$$
+\mathcal{L}_{\text{det}} = \lambda_1 \mathcal{L}_{\text{cls}} + \lambda_2 \mathcal{L}_{\text{box}} + \lambda_3 \mathcal{L}_{\text{DFL}}
+$$
+
+Optimizing $G_{\theta}$ without task gradients from $\mathcal{L}_{\text{det}}$ causes the enhancer to treat Poisson-Gaussian sensor noise in dark regions as high-frequency edge detail, amplifying it into false-positive features.
+
+##### Point 2: Specific Failure Modes of Pipelined Systems
+- **Noise Over-amplification:** In photon-starved regions (e.g., ExDark *Low* and *Shadow*), pixel intensities hover around low quantization levels with low Signal-to-Noise Ratio (SNR). Quadratic curve expansion (Zero-DCE) or reflectance boosting (RetinexNet) scales noise variances exponentially, drowning faint object boundaries.
+- **Chromatic Aberrations and Color Distortion:** Neural enhancers frequently hallucinate unnatural color distributions when balancing color channels, confusing the detector's learned color-semantic priors.
+- **Halo and Boundary Artifacts:** Illumination map estimation at sharp transitions creates ringing artifacts, causing bounding box jitter or boundary regression collapse.
+- **Inference Latency Bottleneck:** A lightweight detector like YOLOv8 operates at $3\text{--}6\text{ ms}$ on edge GPU. Adding Zero-DCE adds $+4\text{ ms}$, while RetinexNet or EnlightenGAN adds $+35\text{--}80\text{ ms}$, dropping frame rates from $>100\text{ FPS}$ to below $25\text{ FPS}$.
 
 #### Literature Defense:
 - Sharif et al. (*WACV 2026*, [8]) demonstrated that even state-of-the-art wild enhancers introduce significant latency overheads.
@@ -48,15 +57,22 @@ Pipelined enhancement-then-detection suffers from an inherent **objective misali
 Our architecture decouples illumination into two complementary representations: a **global condition vector** $\mathbf{v}_{\text{illum}} \in \mathbb{R}^d$ capturing global ambient context and glare dominance, and a **dense spatial illumination map** $\mathbf{M}_{\text{illum}} \in [0, 1]^{H/4 \times W/4}$ that estimates pixel-wise luminance distribution. This dual representation enables spatially varying modulation across pitch-black and glare-saturated zones simultaneously.
 
 #### Detailed Technical Defense:
-1. **Spatial Illumination Modulation:**
-   Standard affine modulation $\mathbf{F}' = \gamma \odot \mathbf{F} + \beta$ applies a uniform channel-wise scaling, which fails under high dynamic range (HDR) non-uniform lighting.
-   In our proposed **Illumination-Guided Feature Modulation (IGFM)**:
-   $$\widetilde{\mathbf{F}} = (\gamma(\mathbf{v}_{\text{illum}}) \odot \mathbf{F} + \beta(\mathbf{v}_{\text{illum}})) + (\mathbf{M}_{\text{illum}} \otimes \mathbf{W}_s \mathbf{F})$$
-   where $\mathbf{M}_{\text{illum}}$ acts as a continuous spatial gate.
-2. **Handling Glare vs. Pitch-Black:**
-   - In **glare-saturated zones** (headlights/streetlights, high $\mathbf{M}_{\text{illum}}$ values $\approx 1.0$), the spatial branch suppresses over-saturation by normalizing high-intensity activations, preventing feature blowout.
-   - In **pitch-black zones** (low $\mathbf{M}_{\text{illum}}$ values $\approx 0.0$), the affine component $\beta(\mathbf{v}_{\text{illum}})$ injects learned semantic bias to lift object representations above the noise floor without amplifying local pixel noise.
-   - The ExDark dataset specifically features 10 illumination types, including *Single* (single light source causing extreme shadows) and *Strong* (glare), allowing our model to learn to distinguish localized illumination variations.
+
+##### Point 1: Spatial Illumination Modulation
+Standard affine modulation $\mathbf{F}' = \gamma \odot \mathbf{F} + \beta$ applies a uniform channel-wise scaling, which fails under high dynamic range (HDR) non-uniform lighting.
+
+In our proposed **Illumination-Guided Feature Modulation (IGFM)**:
+
+$$
+\widetilde{\mathbf{F}} = \left(\gamma(\mathbf{v}_{\text{illum}}) \odot \mathbf{F} + \beta(\mathbf{v}_{\text{illum}})\right) + \left(\mathbf{M}_{\text{illum}} \otimes \mathbf{W}_s \mathbf{F}\right)
+$$
+
+where $\mathbf{M}_{\text{illum}}$ acts as a continuous spatial gate.
+
+##### Point 2: Handling Glare vs. Pitch-Black
+- In **glare-saturated zones** (headlights/streetlights, high $\mathbf{M}_{\text{illum}}$ values $\approx 1.0$), the spatial branch suppresses over-saturation by normalizing high-intensity activations, preventing feature blowout.
+- In **pitch-black zones** (low $\mathbf{M}_{\text{illum}}$ values $\approx 0.0$), the affine component $\beta(\mathbf{v}_{\text{illum}})$ injects learned semantic bias to lift object representations above the noise floor without amplifying local pixel noise.
+- The ExDark dataset specifically features 10 illumination types, including *Single* (single light source causing extreme shadows) and *Strong* (glare), allowing our model to learn to distinguish localized illumination variations.
 
 ---
 
@@ -105,15 +121,25 @@ We chose YOLOv8 because it provides an ideal trade-off between **state-of-the-ar
 We do not require ground-truth illumination maps. Instead, the illumination components are trained through a combination of **weakly-supervised illumination guidance** using the 10 ground-truth environmental illumination labels provided by ExDark, **physics-inspired self-supervised photometric priors** (Retinex illumination smoothness and spatial consistency), and **end-to-end task gradients** propagated directly from the detection loss.
 
 #### Detailed Technical Defense:
-1. **Auxiliary Weakly-Supervised Illumination Classification:**
-   The global illumination vector $\mathbf{v}_{\text{illum}}$ is passed through a lightweight linear classifier supervised by ExDark's 10 condition labels (Low, Ambient, Object, Single, Weak, Strong, Screen, Window, Shadow, Twilight):
-   $$\mathcal{L}_{\text{illum\_cls}} = \text{CrossEntropy}(\mathbf{p}_{\text{illum}}, y_{\text{illum\_label}})$$
-   This ensures $\mathbf{v}_{\text{illum}}$ encodes true environmental lighting dynamics.
-2. **Self-Supervised Spatial Illumination Regularization:**
-   According to Retinex theory ($I(x,y) = R(x,y) \cdot L(x,y)$), the illumination field $L$ is piecewise smooth while reflectance $R$ contains high-frequency textural detail. We regularize the estimated spatial attention map $\mathbf{M}_{\text{illum}}$ with a total variation (TV) smoothness loss:
-   $$\mathcal{L}_{\text{smooth}} = \frac{1}{HW} \sum_{i,j} \left( \|\nabla_x \mathbf{M}_{i,j}\|_2^2 + \|\nabla_y \mathbf{M}_{i,j}\|_2^2 \right)$$
-3. **Implicit Task-Driven Feature Recalibration:**
-   The entire network is trained end-to-end where gradients from $\mathcal{L}_{\text{box}}$ and $\mathcal{L}_{\text{cls}}$ flow backwards through the IGFM blocks into the IEB. The network naturally learns illumination features that maximize object detection discriminability rather than human visual appeal.
+
+##### Point 1: Auxiliary Weakly-Supervised Illumination Classification
+The global illumination vector $\mathbf{v}_{\text{illum}}$ is passed through a lightweight linear classifier supervised by ExDark's 10 condition labels (Low, Ambient, Object, Single, Weak, Strong, Screen, Window, Shadow, Twilight):
+
+$$
+\mathcal{L}_{\text{illum\_cls}} = \text{CrossEntropy}(\mathbf{p}_{\text{illum}}, y_{\text{illum\_label}})
+$$
+
+This ensures $\mathbf{v}_{\text{illum}}$ encodes true environmental lighting dynamics.
+
+##### Point 2: Self-Supervised Spatial Illumination Regularization
+According to Retinex theory ($I(x,y) = R(x,y) \cdot L(x,y)$), the illumination field $L$ is piecewise smooth while reflectance $R$ contains high-frequency textural detail. We regularize the estimated spatial attention map $\mathbf{M}_{\text{illum}}$ with a total variation (TV) smoothness loss:
+
+$$
+\mathcal{L}_{\text{smooth}} = \frac{1}{HW} \sum_{i,j} \left( \|\nabla_x \mathbf{M}_{i,j}\|_2^2 + \|\nabla_y \mathbf{M}_{i,j}\|_2^2 \right)
+$$
+
+##### Point 3: Implicit Task-Driven Feature Recalibration
+The entire network is trained end-to-end where gradients from $\mathcal{L}_{\text{box}}$ and $\mathcal{L}_{\text{cls}}$ flow backwards through the IGFM blocks into the IEB. The network naturally learns illumination features that maximize object detection discriminability rather than human visual appeal.
 
 ---
 
@@ -190,22 +216,38 @@ We quantitatively verify the functional contribution of the illumination module 
 The total training loss is a weighted composite of the primary detection loss $\mathcal{L}_{\text{det}}$ and two auxiliary illumination regularizers: an illumination classification loss $\mathcal{L}_{\text{illum}}$ and a spatial smoothness loss $\mathcal{L}_{\text{smooth}}$. We balance them using fixed loss coefficients verified via grid validation, ensuring the detection loss dominates training while the auxiliary losses guide representation learning.
 
 #### Detailed Mathematical Formulation:
-$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{det}} + \lambda_1 \mathcal{L}_{\text{illum}} + \lambda_2 \mathcal{L}_{\text{smooth}}$$
 
-1. **Primary Detection Loss ($\mathcal{L}_{\text{det}}$):**
-   $$\mathcal{L}_{\text{det}} = \lambda_{\text{cls}} \mathcal{L}_{\text{VFL}} + \lambda_{\text{box}} \mathcal{L}_{\text{CIoU}} + \lambda_{\text{dfl}} \mathcal{L}_{\text{DFL}}$$
-   - $\mathcal{L}_{\text{VFL}}$: Varifocal Loss for calibrated classification confidence.
-   - $\mathcal{L}_{\text{CIoU}}$: Complete Intersection-over-Union loss for scale- and aspect-ratio-invariant bounding box regression.
-   - $\mathcal{L}_{\text{DFL}}$: Distribution Focal Loss for fine-grained boundary regression under blurry edges.
-2. **Auxiliary Illumination Losses:**
-   - $\mathcal{L}_{\text{illum}}$: Multi-class Cross-Entropy on the 10 ExDark illumination types:
-     $$\mathcal{L}_{\text{illum}} = -\sum_{k=1}^{10} y_k \log(\hat{y}_k)$$
-   - $\mathcal{L}_{\text{smooth}}$: Spatial Total Variation (TV) loss on $\mathbf{M}_{\text{illum}}$:
-     $$\mathcal{L}_{\text{smooth}} = \frac{1}{HW} \sum_{i,j} \left( (\mathbf{M}_{i+1,j} - \mathbf{M}_{i,j})^2 + (\mathbf{M}_{i,j+1} - \mathbf{M}_{i,j})^2 \right)$$
-3. **Loss Weight Balancing Strategy:**
-   - Standard weights: $\lambda_{\text{cls}} = 0.5$, $\lambda_{\text{box}} = 7.5$, $\lambda_{\text{dfl}} = 1.5$.
-   - Auxiliary weights: $\lambda_1 = 0.1$, $\lambda_2 = 0.05$.
-   - Gradient norm clipping ($10.0$) is enforced to prevent auxiliary illumination gradients from destabilizing the detection head during early training epochs.
+$$
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{det}} + \lambda_1 \mathcal{L}_{\text{illum}} + \lambda_2 \mathcal{L}_{\text{smooth}}
+$$
+
+##### Point 1: Primary Detection Loss ($\mathcal{L}_{\text{det}}$)
+
+$$
+\mathcal{L}_{\text{det}} = \lambda_{\text{cls}} \mathcal{L}_{\text{VFL}} + \lambda_{\text{box}} \mathcal{L}_{\text{CIoU}} + \lambda_{\text{dfl}} \mathcal{L}_{\text{DFL}}
+$$
+
+- $\mathcal{L}_{\text{VFL}}$: Varifocal Loss for calibrated classification confidence.
+- $\mathcal{L}_{\text{CIoU}}$: Complete Intersection-over-Union loss for scale- and aspect-ratio-invariant bounding box regression.
+- $\mathcal{L}_{\text{DFL}}$: Distribution Focal Loss for fine-grained boundary regression under blurry edges.
+
+##### Point 2: Auxiliary Illumination Losses
+- Multi-class Cross-Entropy on the 10 ExDark illumination types:
+
+$$
+\mathcal{L}_{\text{illum}} = -\sum_{k=1}^{10} y_k \log(\hat{y}_k)
+$$
+
+- Spatial Total Variation (TV) smoothness loss on $\mathbf{M}_{\text{illum}}$:
+
+$$
+\mathcal{L}_{\text{smooth}} = \frac{1}{HW} \sum_{i,j} \left( (\mathbf{M}_{i+1,j} - \mathbf{M}_{i,j})^2 + (\mathbf{M}_{i,j+1} - \mathbf{M}_{i,j})^2 \right)
+$$
+
+##### Point 3: Loss Weight Balancing Strategy
+- Standard detection weights: $\lambda_{\text{cls}} = 0.5$, $\lambda_{\text{box}} = 7.5$, $\lambda_{\text{dfl}} = 1.5$.
+- Auxiliary illumination weights: $\lambda_1 = 0.1$, $\lambda_2 = 0.05$.
+- Gradient norm clipping ($10.0$) is enforced to prevent auxiliary illumination gradients from destabilizing the detection head during early training epochs.
 
 ---
 
@@ -215,16 +257,29 @@ $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{det}} + \lambda_1 \mathcal{L}_
 Unlike image-space enhancers that brighten pixels and scale up sensor noise, our feature modulation operates **in deep feature space** after multiple stages of convolutional filtering and strided pooling, which naturally attenuate high-frequency sensor noise. Furthermore, our IGFM module applies **feature gating** rather than raw intensity boosting, dampening noisy activations in uninformative dark regions.
 
 #### Detailed Technical Defense:
-1. **Physics of Low-Light Sensor Noise:**
-   Raw sensor noise follows a Poisson-Gaussian distribution:
-   $$I(x) = \alpha \cdot \mathcal{P}\left(\frac{I^*(x)}{\alpha}\right) + \mathcal{N}(0, \sigma^2)$$
-   where $\mathcal{P}$ represents photon shot noise (signal-dependent Poisson) and $\mathcal{N}$ represents sensor readout and thermal noise (Gaussian).
-2. **Why Image-Space Enhancers Fail:**
-   When an enhancer multiplies pixel values by an illumination gain factor $G(x) \gg 1$, the variance of the readout noise scales quadratically: $\text{Var}(G \cdot n) = G^2 \sigma^2$. This corrupts image gradients.
-3. **Why Deep Feature Modulation is Noise-Resilient:**
-   - Convolutional layers in Stages 1 and 2 act as learned spatial low-pass and band-pass filters, dampening zero-mean Gaussian readout noise before features reach the modulation blocks at Stages 3, 4, and 5 ($C_3, C_4, C_5$).
-   - The spatial modulation map $\mathbf{M}_{\text{illum}}$ is bounded in $[0, 1]$ via a Sigmoid activation, functioning as an attenuator rather than an unbounded amplifier.
-   - The affine scale parameter $\gamma$ is constrained around $1.0$ using a residual formulation: $\widetilde{\mathbf{F}} = (1 + \tanh(\gamma)) \odot \mathbf{F} + \beta$, preventing exploding feature variances.
+
+##### Point 1: Physics of Low-Light Sensor Noise
+Raw sensor noise follows a Poisson-Gaussian distribution:
+
+$$
+I(x) = \alpha \cdot \mathcal{P}\left(\frac{I^*(x)}{\alpha}\right) + \mathcal{N}(0, \sigma^2)
+$$
+
+where $\mathcal{P}$ represents photon shot noise (signal-dependent Poisson) and $\mathcal{N}$ represents sensor readout and thermal noise (Gaussian).
+
+##### Point 2: Why Image-Space Enhancers Fail
+When an enhancer multiplies pixel values by an illumination gain factor $G(x) \gg 1$, the variance of the readout noise scales quadratically:
+
+$$
+\text{Var}(G \cdot n) = G^2 \sigma^2
+$$
+
+This severely corrupts image gradients.
+
+##### Point 3: Why Deep Feature Modulation is Noise-Resilient
+- Convolutional layers in Stages 1 and 2 act as learned spatial low-pass and band-pass filters, dampening zero-mean Gaussian readout noise before features reach the modulation blocks at Stages 3, 4, and 5 ($C_3, C_4, C_5$).
+- The spatial modulation map $\mathbf{M}_{\text{illum}}$ is bounded in $[0, 1]$ via a Sigmoid activation, functioning as an attenuator rather than an unbounded amplifier.
+- The affine scale parameter $\gamma$ is constrained around $1.0$ using a residual formulation: $\widetilde{\mathbf{F}} = (1 + \tanh(\gamma)) \odot \mathbf{F} + \beta$, preventing exploding feature variances.
 
 ---
 
