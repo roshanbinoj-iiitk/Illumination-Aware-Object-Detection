@@ -202,7 +202,7 @@ def generate_eda_figures(meta_path, exdark_root, out_dir):
 
 
 if __name__ == '__main__':
-    meta_path = '/home/roshanbinoj/.gemini/antigravity-ide/brain/4bbf8a75-473c-481c-965e-8a486f09dc02/scratch/exdark_repo/Groundtruth/imageclasslist.txt'
+    meta_path = '/home/roshanbinoj/Documents/BTP/imageclasslist.txt'
     exdark_root = '/home/roshanbinoj/Documents/BTP/ExDark'
     out_dir = '/home/roshanbinoj/Documents/BTP/outputs/figures'
     generate_eda_figures(meta_path, exdark_root, out_dir)

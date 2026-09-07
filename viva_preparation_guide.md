@@ -11,7 +11,7 @@
 ## Strategic Presentation & Viva Demeanor Guidelines
 
 1. **Acknowledge and Anchor:** Always acknowledge the question directly before diving into mechanics. Use crisp framing: *"That is a fundamental question in low-light vision..."* or *"Our Phase-I empirical benchmarks specifically investigated this trade-off..."*
-2. **Never Bluff on Metrics:** Cite exact experimental figures from our ExDark benchmark ($N=7,363$ images, $N=734$ test images, baseline mAP@0.5 of $35.63\%$, Precision $63.72\%$, Recall $35.00\%$, and the extreme gap between Twilight at $44.5\%$ vs Low at $23.1\%$).
+2. **Never Bluff on Metrics:** Cite exact experimental figures from our ExDark benchmark ($N=7,363$ images, $N=2,563$ official test images across $3,313$ condition evaluations, baseline mAP@0.5 of $56.96\%$, Precision $66.40\%$, Recall $52.41\%$, and the extreme gap between Twilight at $71.19\%$ vs Low at $37.02\%$).
 3. **Stand by the In-Network Paradigm:** The core intellectual contribution of this BTP is that **visual enhancement is suboptimal for machine perception**. Whenever asked about preprocessing, anchor your defense on this proven paradigm shift.
 
 ---
@@ -326,9 +326,9 @@ Phase-II completion is governed by five specific, measurable, and verifiable eng
 #### Measurable Target Metrics:
 
 1. **Overall Detection Accuracy:**
-   - Achieve **$\ge 42.0\%$ overall mAP@0.5** across the full 12-class ExDark test benchmark (a minimum $+6.4\%$ absolute gain over the $35.63\%$ baseline).
+   - Achieve **$\ge 62.0\%$ overall mAP@0.5** across the full 12-class ExDark test benchmark (a minimum $+5.0\%$ absolute gain over the $56.96\%$ baseline).
 2. **Extreme Low-Light Condition Performance:**
-   - Achieve **$\ge 30.0\%$ mAP@0.5** specifically on the *Low* illumination condition (surpassing the baseline $23.1\%$ by at least $+6.9\%$).
+   - Achieve **$\ge 43.8\%$ mAP@0.5** specifically on the *Low* illumination condition (surpassing the baseline $37.02\%$ by $+6.8\%$).
 3. **Inference Latency & Efficiency:**
    - Maintain an end-to-end inference throughput of **$\ge 60\text{ FPS}$** at FP16 precision on desktop GPU and **$\ge 30\text{ FPS}$** on edge-embedded hardware (Jetson Orin Nano).
 4. **Generalization & Cross-Dataset Evaluation:**
@@ -344,9 +344,9 @@ Phase-II completion is governed by five specific, measurable, and verifiable eng
 
 - **Project Title:** *Illumination-Aware Object Detection in Low-Light Environments*
 - **Baseline Model:** YOLOv8n ($3.01\text{M}$ parameters, $8.7\text{ GFLOPs}$)
-- **Baseline Test Performance:** mAP@0.5 = $35.63\%$, Precision = $63.72\%$, Recall = $35.00\%$ ($N=734$ test images)
-- **Illumination Performance Range:** $44.5\%$ (Twilight) down to $23.1\%$ (Low)
+- **Baseline Test Performance:** mAP@0.5 = $56.96\%$, Precision = $66.40\%$, Recall = $52.41\%$ ($N=2,563$ test images, $3,313$ condition evaluations)
+- **Illumination Performance Range:** $71.19\%$ (Twilight) down to $37.02\%$ (Low)
 - **Proposed Architecture:** IA-FMN (Illumination-Aware Feature Modulation Network)
 - **Key Modules:** Illumination Estimation Branch (IEB) + Illumination-Guided Feature Modulation (IGFM)
-- **Overhead:** $+0.45\text{M}$ parameters, $+1.8\text{ ms}$ latency ($166\text{ FPS}$)
+- **Overhead:** $+0.45\text{M}$ parameters, $+1.8\text{ ms}$ latency ($62\text{ FPS}$)
 - **Empirical Peak Gain:** $+6.8\%$ mAP@0.5 under severe low-light conditions

@@ -41,7 +41,7 @@ Object detection in low-light environments is constrained by photon starvation, 
 | # | Domain Challenge | Existing Approach | Core Limitation | Targeted Research Gap | Proposed Solution (IA-FMN) |
 |:---:|---|---|---|---|---|
 | **1** | **Enhancement Pipeline Failure** | Two-stage pipeline: Pre-Enhancement (Zero-DCE, RetinexNet, EnlightenGAN) followed by detector | Objective conflict: noise amplification, color distortion, and high latency ($+15\text{--}80\text{ ms}$) | Real-time edge perception cannot tolerate two-stage processing or amplified sensor noise | **In-Network Feature Modulation:** Dynamic scaling with zero pre-enhancement latency |
-| **2** | **Evaluation Blindspot** | Single aggregate mAP metric over full ExDark benchmark | Masks catastrophic failure in extreme dark ($44.5\%$ in Twilight vs $23.1\%$ in Low) | Lack of fine-grained, illumination-stratified evaluation across distinct light types | **10-Condition Stratification:** Rigorous evaluation exposing and solving true dark gaps |
+| **2** | **Evaluation Blindspot** | Single aggregate mAP metric over full ExDark benchmark | Masks catastrophic failure in extreme dark ($71.2\%$ in Twilight vs $37.0\%$ in Low) | Lack of fine-grained, illumination-stratified evaluation across distinct light types | **10-Condition Stratification:** Rigorous evaluation exposing and solving true dark gaps |
 | **3** | **Static Feature Representation** | Standard illumination-invariant convolutions | Treats low-photon and well-lit regions identically, ignoring local SNR collapse | Need dynamic feature recalibration conditioned on localized illumination severity | **Dual Global + Spatial Modulation:** IGFM blocks driven by IEB attention maps |
 
 ### Core Research Gap Pathways

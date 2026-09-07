@@ -21,6 +21,9 @@ venv.bak/
 
 # Dataset & annotations (Large data files > 1.5 GB)
 ExDark/
+ExDark_Annno/
+ExDark_Annots/
+imageclasslist.txt
 data_processed/
 datasets/
 *.zip

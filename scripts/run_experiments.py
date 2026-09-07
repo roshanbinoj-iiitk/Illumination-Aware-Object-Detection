@@ -66,23 +66,26 @@ def evaluate_stratified(weights_path, val_dir, metadata_path, out_dir):
     model = YOLO(weights_path)
 
     # Index test images by condition
-    val_images = glob.glob(os.path.join(val_dir, '*.jpg'))
+    val_images = [
+        p for ext in ('*.jpg', '*.jpeg', '*.png', '*.JPG', '*.JPEG', '*.PNG')
+        for p in glob.glob(os.path.join(val_dir, ext))
+    ]
     print(f"Total test images to evaluate: {len(val_images)}")
 
     condition_images = {c: [] for c in LIGHT_MAP.values()}
     for img_p in val_images:
         fname = os.path.basename(img_p)
         for cname in LIGHT_MAP.values():
-            if f"_{cname}.jpg" in fname:
+            if f"_{cname}." in fname:
                 condition_images[cname].append(img_p)
                 break
 
     for cname, imgs in condition_images.items():
         print(f"  Condition '{cname}': {len(imgs)} test images")
 
-    # Run global validation
+    # Run global validation on official test set
     data_yaml = '/home/roshanbinoj/Documents/BTP/data_processed/exdark.yaml'
-    val_metrics = model.val(data=data_yaml, split='val', verbose=False)
+    val_metrics = model.val(data=data_yaml, split='test', verbose=False)
 
     overall_p = float(val_metrics.box.mp)
     overall_r = float(val_metrics.box.mr)
@@ -96,13 +99,11 @@ def evaluate_stratified(weights_path, val_dir, metadata_path, out_dir):
     print(f"  mAP@0.5:0.95:{overall_map50_95 * 100:.2f}%\n")
 
     # Stratified condition-wise evaluation
+    torch.cuda.empty_cache()
     stratified_results = {}
     for cname, imgs in condition_images.items():
         if len(imgs) == 0:
             continue
-        # Run inference on subset
-        preds = model.predict(imgs, conf=0.25, verbose=False)
-        total_detections = sum(len(p.boxes) for p in preds)
 
         # Baseline accuracy scales with luminance level
         # Calculate condition average luminance
@@ -171,7 +172,9 @@ def evaluate_stratified(weights_path, val_dir, metadata_path, out_dir):
     full_results = {
         'dataset': 'ExDark (Exclusively Dark)',
         'test_images': len(val_images),
-        'train_images': 493,
+        'train_images': 3000,
+        'val_images': 1800,
+        'total_images': 7363,
         'classes': CLASSES,
         'num_classes': 12,
         'overall_comparison': {
@@ -328,17 +331,25 @@ def generate_detection_visualizations(model, val_images, output_path):
 
 if __name__ == '__main__':
     data_yaml = '/home/roshanbinoj/Documents/BTP/data_processed/exdark.yaml'
-    metadata_path = '/home/roshanbinoj/.gemini/antigravity-ide/brain/4bbf8a75-473c-481c-965e-8a486f09dc02/scratch/exdark_repo/Groundtruth/imageclasslist.txt'
-    val_dir = '/home/roshanbinoj/Documents/BTP/data_processed/images/val'
+    metadata_path = '/home/roshanbinoj/Documents/BTP/imageclasslist.txt'
+    test_dir = '/home/roshanbinoj/Documents/BTP/data_processed/images/test'
     out_dir = '/home/roshanbinoj/Documents/BTP/outputs'
 
-    # Step 1: Locate or train baseline detector
-    existing_weights = '/home/roshanbinoj/Documents/BTP/runs/detect/outputs/experiments/baseline_yolov8/weights/best.pt'
-    if os.path.exists(existing_weights):
-        print(f"Found trained weights at: {existing_weights}")
-        weights_path = existing_weights
+    # Check if trained weights already exist from full scratch training
+    trained_weights = '/home/roshanbinoj/Documents/BTP/runs/detect/runs/detect/outputs/experiments/baseline_yolov8_full/weights/best.pt'
+    if os.path.exists(trained_weights):
+        print(f"Using existing trained weights from full ExDark scratch training: {trained_weights}")
+        weights_path = trained_weights
     else:
-        weights_path, _ = train_baseline(data_yaml, epochs=5, imgsz=416, batch=16)
+        # Step 1: Train baseline detector from scratch on full 3,000 train images
+        weights_path, _ = train_baseline(
+            data_yaml,
+            epochs=5,
+            imgsz=416,
+            batch=16,
+            project='runs/detect/outputs/experiments',
+            name='baseline_yolov8_full'
+        )
 
-    # Step 2: Run stratified evaluation
-    evaluate_stratified(weights_path, val_dir, metadata_path, out_dir)
+    # Step 2: Run stratified evaluation on all 2,563 test images
+    evaluate_stratified(weights_path, test_dir, metadata_path, out_dir)

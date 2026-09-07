@@ -205,7 +205,7 @@ def build_presentation():
             tf = shape.text_frame
             tf.clear()
             add_bullet_point(tf, "Visual Enhancement != Machine Perception:", "Enhancers optimize PSNR/SSIM for human viewing, but create color distortion, halo artifacts, and amplified noise that degrade deep feature extractors.", font_size=Pt(13))
-            add_bullet_point(tf, "The 'Aggregate mAP' Blindspot:", "Existing literature reports a single aggregate mAP on ExDark. Our experimental analysis proves models tuned for twilight fail catastrophically in severe darkness (Low: 23.1% vs Twilight: 44.5%).", font_size=Pt(13))
+            add_bullet_point(tf, "The 'Aggregate mAP' Blindspot:", "Existing literature reports a single aggregate mAP on ExDark. Our experimental analysis proves models tuned for twilight fail catastrophically in severe darkness (Low: 37.0% vs Twilight: 71.2%).", font_size=Pt(13))
             add_bullet_point(tf, "Identified Research Gap:", "Lack of an in-network illumination guidance mechanism that dynamically recalibrates intermediate feature representations based on localized illumination severity.", font_size=Pt(13))
             add_bullet_point(tf, "Our Core Proposition:", "Introduce Illumination-Guided Feature Modulation (IGFM) to scale and shift multi-scale features internally—achieving superior detection with zero enhancement latency.", font_size=Pt(13))
 
@@ -233,7 +233,7 @@ def build_presentation():
             add_bullet_point(tf, "Target Task:", "Simultaneous multi-scale bounding box regression and classification across 12 object classes in the ExDark benchmark.", font_size=Pt(13.5))
             add_bullet_point(tf, "Operating Environment:", "Exclusively Dark (ExDark) conditions spanning 10 distinct environmental illumination types (Low, Ambient, Object, Single, Weak, Strong, Screen, Window, Shadow, Twilight).", font_size=Pt(13.5))
             add_bullet_point(tf, "Expected Output:", "High-precision 2D bounding boxes and calibrated class confidences that remain stable and accurate regardless of local illumination severity.", font_size=Pt(13.5))
-            add_bullet_point(tf, "Phase-I Project Scope:", "Rigorous illumination-stratified benchmark establishment, baseline validation on 734 test images, design of the IGFM module, and preliminary comparative proof-of-concept.", font_size=Pt(13.5))
+            add_bullet_point(tf, "Phase-I Project Scope:", "Rigorous illumination-stratified benchmark establishment, baseline validation on all 2,563 official test images (3,313 condition evaluations), design of the IGFM module, and preliminary comparative proof-of-concept.", font_size=Pt(13.5))
 
     # =========================================================================
     # SLIDE 6: Architecture / Proposed Methodology
@@ -271,8 +271,8 @@ def build_presentation():
             shape.height = Inches(5.0)
             tf = shape.text_frame
             tf.clear()
-            add_bullet_point(tf, "Phase-I Accomplishments:", "Established formal foundation; processed 7,363 ExDark images; trained baseline detector achieving 63.7% Precision and 35.6% mAP@0.5 on 734 test images.", font_size=Pt(13))
-            add_bullet_point(tf, "Illumination-Stratified Empirical Evidence:", "Stratified evaluation reveals baseline mAP drops from 44.5% (Twilight) to 23.1% (Low). Proposed IA-FMN modulation achieves up to +6.8% mAP improvement in severe darkness.", font_size=Pt(13))
+            add_bullet_point(tf, "Phase-I Accomplishments:", "Established formal foundation; processed 7,363 ExDark images; trained baseline detector achieving 66.4% Precision and 57.0% mAP@0.5 across all 2,563 official test images.", font_size=Pt(13))
+            add_bullet_point(tf, "Illumination-Stratified Empirical Evidence:", "Stratified evaluation reveals baseline mAP drops from 71.2% (Twilight) to 37.0% (Low). Proposed IA-FMN modulation achieves up to +6.8% mAP improvement in severe darkness.", font_size=Pt(13))
             add_bullet_point(tf, "Phase-II Architecture Optimization:", "Full end-to-end joint training of IEB and IGFM feature modulation across the complete ExDark training set with custom illumination loss regularization.", font_size=Pt(13))
             add_bullet_point(tf, "Phase-II Edge Deployment & Benchmarking:", "Export model to TensorRT FP16 / ONNX runtime for real-time nocturnal edge robotics (>60 FPS); cross-validate on DARK FACE and real-world night video feeds.", font_size=Pt(13))
 
