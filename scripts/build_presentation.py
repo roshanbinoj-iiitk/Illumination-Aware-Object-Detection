@@ -228,7 +228,7 @@ def build_presentation():
             shape.height = Inches(5.2)
             tf = shape.text_frame
             tf.clear()
-            add_bullet_point(tf, "Formal Problem Formulation:", "Given an input image I in R^{H x W x 3} captured under an unknown non-uniform illumination field L(x, y), predict bounding boxes B = {(x_i, y_i, w_i, h_i, c_i, s_i)} robustly across varying degradation levels.", font_size=Pt(13.5))
+            add_bullet_point(tf, "Formal Problem Formulation:", "Given an input image I ∈ ℝᴴˣᵂˣ³ captured under an unknown non-uniform illumination field L(x, y), predict bounding boxes B = {(xᵢ, yᵢ, wᵢ, hᵢ, cᵢ, sᵢ)} robustly across varying degradation levels.", font_size=Pt(13.5))
             add_bullet_point(tf, "Input Domain:", "Low-light RGB images characterized by severe photon starvation, high ISO readout noise, non-uniform point lights, and dynamic range compression.", font_size=Pt(13.5))
             add_bullet_point(tf, "Target Task:", "Simultaneous multi-scale bounding box regression and classification across 12 object classes in the ExDark benchmark.", font_size=Pt(13.5))
             add_bullet_point(tf, "Operating Environment:", "Exclusively Dark (ExDark) conditions spanning 10 distinct environmental illumination types (Low, Ambient, Object, Single, Weak, Strong, Screen, Window, Shadow, Twilight).", font_size=Pt(13.5))
