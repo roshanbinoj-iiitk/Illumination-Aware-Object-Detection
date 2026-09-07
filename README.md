@@ -35,16 +35,40 @@ The system features a dual-branch end-to-end design: the primary multi-scale bac
 ### Mathematical Formulation of Core Modules
 
 #### 1. Illumination Estimation Branch (IEB)
-Given an input low-light image $\mathbf{I} \in \mathbb{R}^{H \times W \times 3}$, the IEB extracts:
-* **Global Condition Vector:**
-  $$\mathbf{v}_{\text{illum}} = \text{MLP}\left(\left[\text{AvgPool}(\mathbf{Z}); \text{MaxPool}(\mathbf{Z})\right]\right) \in \mathbb{R}^d$$
-* **Spatial Illumination Attention Map:**
-  $$\mathbf{M}_{\text{illum}} = \sigma\left(\text{Conv}_{1\times 1}\left(\text{GELU}\left(\text{Conv}_{3\times 3}(\mathbf{Z})\right)\right)\right) \in [0, 1]^{H/4 \times W/4}$$
+
+Given an input low-light image $\mathbf{I} \in \mathbb{R}^{H \times W \times 3}$, an initial shallow luminance extractor produces an intermediate representation $\mathbf{Z} \in \mathbb{R}^{C_{\text{ieb}} \times \frac{H}{4} \times \frac{W}{4}}$:
+
+$$
+\mathbf{Z} = \text{GELU}\left(\text{Conv}_{3\times 3}(\mathbf{I})\right)
+$$
+
+From $\mathbf{Z}$, the IEB extracts dual global and spatial illumination guidance priors:
+
+* **Global Illumination Condition Vector ($\mathbf{v}_{\text{illum}}$):** Captures ambient scene luminance and dynamic range via dual pooling:
+
+$$
+\mathbf{v}_{\text{illum}} = \text{MLP}\left(\left[\text{AvgPool}(\mathbf{Z})\,;\,\text{MaxPool}(\mathbf{Z})\right]\right) \in \mathbb{R}^d
+$$
+
+* **Spatial Illumination Attention Map ($\mathbf{M}_{\text{illum}}$):** Models localized, pixel-wise non-uniform lighting and glare:
+
+$$
+\mathbf{M}_{\text{illum}} = \sigma\left(\text{Conv}_{1\times 1}\left(\text{GELU}\left(\text{Conv}_{3\times 3}(\mathbf{Z})\right)\right)\right) \in [0, 1]^{\frac{H}{4} \times \frac{W}{4}}
+$$
 
 #### 2. Illumination-Guided Feature Modulation (IGFM)
-At multi-scale backbone stages $C_3, C_4, C_5$, intermediate features $\mathbf{F} \in \mathbb{R}^{C \times H_i \times W_i}$ are dynamically recalibrated:
-$$\widetilde{\mathbf{F}} = \left(\gamma(\mathbf{v}_{\text{illum}}) \odot \mathbf{F} + \beta(\mathbf{v}_{\text{illum}})\right) + \left(\mathbf{M}_{\text{illum}} \otimes \mathbf{W}_s \mathbf{F}\right)$$
-where $\gamma, \beta \in \mathbb{R}^C$ are affine scale and shift parameters, and $\mathbf{W}_s$ is a spatial projection kernel.
+
+At multi-scale backbone stages ($C_3, C_4, C_5$), intermediate features $\mathbf{F} \in \mathbb{R}^{C \times H_i \times W_i}$ are dynamically recalibrated via affine channel modulation and spatial gating:
+
+$$
+\widetilde{\mathbf{F}} = \left(\gamma(\mathbf{v}_{\text{illum}}) \odot \mathbf{F} + \beta(\mathbf{v}_{\text{illum}})\right) + \left(\mathbf{M}_{\text{illum}} \otimes \mathbf{W}_s \mathbf{F}\right)
+$$
+
+where:
+* $\gamma(\mathbf{v}_{\text{illum}}) \in \mathbb{R}^C$ and $\beta(\mathbf{v}_{\text{illum}}) \in \mathbb{R}^C$ are affine scale and shift vectors computed via lightweight linear projections.
+* $\mathbf{W}_s$ denotes a $1 \times 1$ spatial projection convolution aligning feature dimensions.
+* $\odot$ represents channel-wise Hadamard multiplication.
+* $\otimes$ denotes spatial element-wise broadcasting across the feature map.
 
 ---
 
