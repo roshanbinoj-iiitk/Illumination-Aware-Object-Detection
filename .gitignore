@@ -1,0 +1,57 @@
+# ==============================================================================
+# Git Ignore Configuration: Illumination-Aware Object Detection (BTP Phase-I)
+# ==============================================================================
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Dataset & annotations (Large data files > 1.5 GB)
+ExDark/
+data_processed/
+datasets/
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# Deep Learning Checkpoints & Weights (> 50-100 MB)
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.onnx
+*.engine
+weights/
+runs/
+
+# WandB & Experiment Tracking
+wandb/
+.tensorboard/
+
+# IDE & Editor specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Office / LibreOffice lock files
+.~lock.*
+*.tmp

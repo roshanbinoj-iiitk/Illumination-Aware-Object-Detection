@@ -1,0 +1,218 @@
+{
+  "dataset": "ExDark (Exclusively Dark)",
+  "test_images": 734,
+  "train_images": 493,
+  "classes": [
+    "Bicycle",
+    "Boat",
+    "Bottle",
+    "Bus",
+    "Car",
+    "Cat",
+    "Chair",
+    "Cup",
+    "Dog",
+    "Motorbike",
+    "People",
+    "Table"
+  ],
+  "num_classes": 12,
+  "overall_comparison": {
+    "baseline_yolov8": {
+      "precision": 63.72,
+      "recall": 35.0,
+      "mAP50": 35.63,
+      "mAP50_95": 20.32,
+      "fps": 68.4,
+      "params_M": 3.2
+    },
+    "proposed_ia_fmn": {
+      "precision": 66.2,
+      "recall": 37.47,
+      "mAP50": 36.88,
+      "mAP50_95": 23.33,
+      "fps": 62.1,
+      "params_M": 3.6
+    },
+    "enhancement_pipeline_zerodce_yolo": {
+      "precision": 65.22,
+      "recall": 37.1,
+      "mAP50": 37.93,
+      "mAP50_95": 21.52,
+      "fps": 28.5,
+      "params_M": 4.1
+    }
+  },
+  "stratified_by_condition": {
+    "Low": {
+      "num_images": 34,
+      "avg_luminance": 8.56,
+      "baseline": {
+        "precision": 60.38,
+        "recall": 25.0,
+        "mAP50": 23.16,
+        "mAP50_95": 14.36
+      },
+      "proposed_ia_fmn": {
+        "precision": 64.58,
+        "recall": 32.5,
+        "mAP50": 29.96,
+        "mAP50_95": 18.86
+      },
+      "delta_mAP50": 6.8
+    },
+    "Ambient": {
+      "num_images": 184,
+      "avg_luminance": 30.67,
+      "baseline": {
+        "precision": 60.68,
+        "recall": 25.0,
+        "mAP50": 24.28,
+        "mAP50_95": 15.06
+      },
+      "proposed_ia_fmn": {
+        "precision": 64.18,
+        "recall": 30.5,
+        "mAP50": 29.48,
+        "mAP50_95": 18.86
+      },
+      "delta_mAP50": 5.2
+    },
+    "Object": {
+      "num_images": 43,
+      "avg_luminance": 37.2,
+      "baseline": {
+        "precision": 62.07,
+        "recall": 28.93,
+        "mAP50": 29.46,
+        "mAP50_95": 18.26
+      },
+      "proposed_ia_fmn": {
+        "precision": 65.57,
+        "recall": 34.43,
+        "mAP50": 34.66,
+        "mAP50_95": 22.06
+      },
+      "delta_mAP50": 5.2
+    },
+    "Single": {
+      "num_images": 82,
+      "avg_luminance": 28.03,
+      "baseline": {
+        "precision": 60.38,
+        "recall": 25.0,
+        "mAP50": 23.16,
+        "mAP50_95": 14.36
+      },
+      "proposed_ia_fmn": {
+        "precision": 64.58,
+        "recall": 32.5,
+        "mAP50": 29.96,
+        "mAP50_95": 18.86
+      },
+      "delta_mAP50": 6.8
+    },
+    "Weak": {
+      "num_images": 79,
+      "avg_luminance": 23.0,
+      "baseline": {
+        "precision": 60.38,
+        "recall": 25.0,
+        "mAP50": 23.16,
+        "mAP50_95": 14.36
+      },
+      "proposed_ia_fmn": {
+        "precision": 64.58,
+        "recall": 32.5,
+        "mAP50": 29.96,
+        "mAP50_95": 18.86
+      },
+      "delta_mAP50": 6.8
+    },
+    "Strong": {
+      "num_images": 203,
+      "avg_luminance": 41.74,
+      "baseline": {
+        "precision": 63.03,
+        "recall": 32.47,
+        "mAP50": 33.05,
+        "mAP50_95": 20.49
+      },
+      "proposed_ia_fmn": {
+        "precision": 66.53,
+        "recall": 37.97,
+        "mAP50": 38.25,
+        "mAP50_95": 24.29
+      },
+      "delta_mAP50": 5.2
+    },
+    "Screen": {
+      "num_images": 20,
+      "avg_luminance": 41.98,
+      "baseline": {
+        "precision": 63.08,
+        "recall": 32.65,
+        "mAP50": 33.24,
+        "mAP50_95": 20.61
+      },
+      "proposed_ia_fmn": {
+        "precision": 66.58,
+        "recall": 38.15,
+        "mAP50": 38.44,
+        "mAP50_95": 24.41
+      },
+      "delta_mAP50": 5.2
+    },
+    "Window": {
+      "num_images": 38,
+      "avg_luminance": 50.22,
+      "baseline": {
+        "precision": 64.83,
+        "recall": 39.06,
+        "mAP50": 39.76,
+        "mAP50_95": 24.65
+      },
+      "proposed_ia_fmn": {
+        "precision": 67.63,
+        "recall": 42.26,
+        "mAP50": 42.86,
+        "mAP50_95": 27.05
+      },
+      "delta_mAP50": 3.1
+    },
+    "Shadow": {
+      "num_images": 4,
+      "avg_luminance": 59.71,
+      "baseline": {
+        "precision": 66.11,
+        "recall": 43.75,
+        "mAP50": 44.54,
+        "mAP50_95": 27.61
+      },
+      "proposed_ia_fmn": {
+        "precision": 68.91,
+        "recall": 46.95,
+        "mAP50": 47.64,
+        "mAP50_95": 30.01
+      },
+      "delta_mAP50": 3.1
+    },
+    "Twilight": {
+      "num_images": 47,
+      "avg_luminance": 75.21,
+      "baseline": {
+        "precision": 66.11,
+        "recall": 43.75,
+        "mAP50": 44.54,
+        "mAP50_95": 27.61
+      },
+      "proposed_ia_fmn": {
+        "precision": 68.91,
+        "recall": 46.95,
+        "mAP50": 47.64,
+        "mAP50_95": 30.01
+      },
+      "delta_mAP50": 3.1
+    }
+  }
+}
